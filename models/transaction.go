@@ -1,12 +1,14 @@
 package models
 
+import "database/sql"
+
 type Transaction struct {
 	ID        int    `json:"ID"`
 	TransDate string `json:"trans_date"`
 	CFDate    string `json:"cf_date"`
 }
 
-func getTransactions() []Transaction {
+func getTransactions(db *sql.DB) []Transaction {
 	transactions := []Transaction{
 		{ID: 1},
 	}
