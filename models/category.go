@@ -13,23 +13,25 @@ type Category struct {
 }
 
 func GetCategories(c *gin.Context) {
-	var status int
 	var records []Category
-
-	base_query := "SELECT categoryid, category_name\n"
-	base_query += "FROM category\n"
+	var err error
+	base_query := getBaseQuery()
 
 	if c.Query("id") != "" {
-		status, records = getCategoryByID(base_query, c.Query("id"))
+		records, err = getCategoryByID(base_query, c.Query("id"))
 	} else if c.Query("name") != "" {
-		status, records = getCategoryByName(base_query, c.Query("name"))
+		records, err = getCategoryByName(base_query, c.Query("name"))
 	} else {
-		status, records = getAllCategories(base_query)
+		records, err = getAllCategories(base_query)
 	}
-	c.IndentedJSON(status, records)
+	if err != nil {
+		log.Print(err.Error())
+		c.IndentedJSON(getErrStatus(err), records)
+	}
+	c.IndentedJSON(http.StatusOK, records)
 }
 
-func getCategoryByID(base_query string, id string) (status int, record []Category) {
+func getCategoryByID(base_query string, id string) (record []Category, err error) {
 	base_query += "WHERE categoryid = ?\n;"
 	log.Print(base_query)
 	var category Category
@@ -37,29 +39,28 @@ func getCategoryByID(base_query string, id string) (status int, record []Categor
 		&category.ID,
 		&category.Name,
 	); err != nil {
-		log.Print(err.Error())
-		return handleSqlErr(err), []Category{}
+		return []Category{}, err
 	}
-	return http.StatusOK, []Category{category}
+	return []Category{category}, nil
 }
 
-func getCategoryByName(base_query string, name string) (status int, record []Category) {
+func getCategoryByName(base_query string, name string) (record []Category, err error) {
 	base_query += "WHERE category_name = ?\n;"
 	var category Category
 	if err := DB.QueryRow(base_query, name).Scan(
 		&category.ID,
 		&category.Name,
 	); err != nil {
-		return handleSqlErr(err), []Category{}
+		return []Category{}, err
 	}
-	return http.StatusOK, []Category{category}
+	return []Category{category}, nil
 }
 
-func getAllCategories(base_query string) (status int, record []Category) {
+func getAllCategories(base_query string) (record []Category, err error) {
 	categories := []Category{}
 	results, err := DB.Query(base_query)
 	if err != nil {
-		return handleSqlErr(err), categories
+		return categories, err
 	} else {
 		for results.Next() {
 			var category Category
@@ -67,10 +68,22 @@ func getAllCategories(base_query string) (status int, record []Category) {
 				&category.ID, &category.Name,
 			)
 			if err != nil {
-				return http.StatusInternalServerError, []Category{}
+				return categories, err
 			}
 			categories = append(categories, category)
 		}
-		return http.StatusOK, categories
+		return categories, err
 	}
+}
+
+func CreateCategory(c *gin.Context) {
+
+}
+
+func UpdateCategory(c *gin.Context) {
+
+}
+
+func DeleteCategory(c *gin.Context) {
+
 }
