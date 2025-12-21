@@ -21,5 +21,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/accounts", models.GetAccounts)
 
+	router.GET("/categories", models.GetCategories)
+
 	router.Run("localhost:8080")
 }

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	da "rw_budget/api/internal"
@@ -21,23 +20,62 @@ type Account struct {
 }
 
 func GetAccounts(c *gin.Context) {
+	var status int
+	var records []Account
+
 	base_query := "SELECT accountid, account_name, account_type, rewards_features, payment_day, statement_day\n"
 	base_query += "FROM account\n"
 
-	if c.Query("name") != "" {
-		getByName(c, base_query)
-	} else if c.Query("id") != "" {
-		getByID(c, base_query)
+	if c.Query("id") != "" {
+		status, records = getAccountByID(base_query, c.Query("id"))
+	} else if c.Query("name") != "" {
+		status, records = getAccountByName(base_query, c.Query("name"))
 	} else {
-		getAll(c, base_query)
+		status, records = getAllAccounts(base_query)
 	}
+	c.IndentedJSON(status, records)
 }
 
-func getAll(c *gin.Context, base_query string) {
+func getAccountByID(base_query string, id string) (status int, record []Account) {
+	base_query += "WHERE accountid = ?\n;"
+	var account Account
+	if err := DB.QueryRow(
+		base_query, id).Scan(
+		&account.ID,
+		&account.Name,
+		&account.Type,
+		&account.Features,
+		&account.PmtDate,
+		&account.StmtDate,
+	); err != nil {
+		log.Print(err.Error())
+		return handleSqlErr(err), []Account{}
+	}
+	return http.StatusOK, []Account{account}
+}
+
+func getAccountByName(base_query string, name string) (status int, record []Account) {
+	base_query += "WHERE account_name = ?\n;"
+	var account Account
+	if err := DB.QueryRow(
+		base_query, name).Scan(
+		&account.ID,
+		&account.Name,
+		&account.Type,
+		&account.Features,
+		&account.PmtDate,
+		&account.StmtDate,
+	); err != nil {
+		return handleSqlErr(err), []Account{}
+	}
+	return http.StatusOK, []Account{account}
+}
+
+func getAllAccounts(base_query string) (status int, records []Account) {
 	accounts := []Account{}
 	results, err := DB.Query(base_query)
 	if err != nil {
-		log.Print(err.Error())
+		return handleSqlErr(err), accounts
 	}
 	for results.Next() {
 		var account Account
@@ -50,49 +88,11 @@ func getAll(c *gin.Context, base_query string) {
 			&account.StmtDate,
 		)
 		if err != nil {
-			log.Print(err.Error())
+			return http.StatusInternalServerError, []Account{}
 		}
 		accounts = append(accounts, account)
 	}
-	c.IndentedJSON(http.StatusOK, accounts)
-}
-
-func getByName(c *gin.Context, base_query string) {
-	base_query += "WHERE account_name = ?\n;"
-	var account Account
-	if err := DB.QueryRow(
-		base_query, c.Query("name")).Scan(
-		&account.ID,
-		&account.Name,
-		&account.Type,
-		&account.Features,
-		&account.PmtDate,
-		&account.StmtDate,
-	); err != nil {
-		if err == sql.ErrNoRows {
-			c.IndentedJSON(http.StatusNotFound, account)
-		}
-	}
-	c.IndentedJSON(http.StatusOK, account)
-}
-
-func getByID(c *gin.Context, base_query string) {
-	base_query += "WHERE accountid = ?\n;"
-	var account Account
-	if err := DB.QueryRow(
-		base_query, c.Query("id")).Scan(
-		&account.ID,
-		&account.Name,
-		&account.Type,
-		&account.Features,
-		&account.PmtDate,
-		&account.StmtDate,
-	); err != nil {
-		if err == sql.ErrNoRows {
-			c.IndentedJSON(http.StatusNotFound, account)
-		}
-	}
-	c.IndentedJSON(http.StatusOK, account)
+	return http.StatusOK, accounts
 }
 
 func createAccount(deets Account) int {
