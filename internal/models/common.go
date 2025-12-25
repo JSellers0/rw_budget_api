@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"net/http"
-	db "rw_budget/api/internal"
+	db "rw_budget/api/internal/database"
 )
 
 var DB = db.GetDB()

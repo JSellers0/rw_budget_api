@@ -3,16 +3,16 @@ package main
 import (
 	"fmt"
 	"log"
-	da "rw_budget/api/internal"
-	models "rw_budget/api/models"
+	db "rw_budget/api/internal/database"
+	models "rw_budget/api/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-var DB = da.GetDB()
+var DB = db.GetDB()
 
 func main() {
-	pingErr := da.DB.Ping()
+	pingErr := db.DB.Ping()
 	if pingErr != nil {
 		log.Fatal(pingErr)
 	}
