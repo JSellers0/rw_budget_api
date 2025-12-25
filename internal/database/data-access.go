@@ -29,7 +29,7 @@ func connectDB(pwd string) *sql.DB {
 	cfg.User = "svc_rw_budget"
 	cfg.Passwd = pwd
 	cfg.Net = "tcp"
-	cfg.Addr = "192.168.40.101:3306"
+	cfg.Addr = "192.168.40.101:3307"
 	cfg.DBName = "rw_budget_dev"
 
 	var err error
