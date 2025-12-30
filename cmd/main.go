@@ -1,35 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	db "rw_budget/api/internal/database"
-	models "rw_budget/api/internal/models"
+	h "rw_budget/api/handlers"
+	s "rw_budget/api/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-var DB = db.GetDB()
-
 func main() {
-	pingErr := db.DB.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected!")
+	ah := h.NewAccountHandler(s.NewAccountService())
+	ch := h.NewCategoryHandler(s.NewCategoryService())
+	cfh := h.NewCashflowHandler(s.NewCashflowService())
 
 	router := gin.Default()
-	router.GET("/accounts", models.GetAccounts)
-	router.POST("/accounts", models.CreateAccount)
-	router.PUT("/accounts", models.UpdateAccount)
-	router.DELETE("/accounts", models.DeleteAccount)
+	router.GET("/accounts", ah.GetAccounts)
+	router.GET("/accounts/:id", ah.GetAccountByID)
+	router.POST("/accounts", ah.PostAccount)
+	router.PUT("/accounts", ah.PutAccount)
+	router.DELETE("/accounts/:id", ah.DeleteAccount)
 
-	router.GET("/categories", models.GetCategories)
-	router.POST("/categories", models.CreateCategory)
-	router.PUT("/categories", models.UpdateCategory)
-	router.DELETE("/categories", models.DeleteCategory)
+	router.GET("/categories", ch.GetCategories)
+	router.GET("/categories/:id", ch.GetCategoryByID)
+	router.POST("/categories", ch.PostCategory)
+	router.PUT("/categories", ch.PutCategory)
+	router.DELETE("/categories/:id", ch.DeleteCategory)
 
-	router.GET("cashflow/:year/:month", models.GetCashflow)
+	router.GET("cashflows/summary/:year/:month", cfh.GetCashflowSummary)
+	router.GET("cashflows/chart/:year/:month", cfh.GetCashflowChart)
+	router.GET("cashflows/card_balances/:year/:month", cfh.GetCashflowCardBalances)
 
 	router.Run("localhost:8080")
 }

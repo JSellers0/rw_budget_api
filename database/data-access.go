@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -20,6 +21,11 @@ func GetDB() *sql.DB {
 		safe_pwd := os.Getenv("MSQLPWD")
 		DB = connectDB(safe_pwd)
 	}
+	pingErr := DB.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
 	return DB
 }
 
