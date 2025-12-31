@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	s "rw_budget/api/services"
 
@@ -93,9 +94,9 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"success":   true,
-		"message":   "Account created successfully",
-		"accountid": new_id,
+		"success": true,
+		"message": "Account created successfully",
+		"data":    `{"accountid": ` + strconv.Itoa(int(*new_id)) + `}`,
 	})
 }
 

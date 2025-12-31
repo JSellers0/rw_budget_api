@@ -88,7 +88,7 @@ func (h categoryHandler) PostCategory(c *gin.Context) {
 			"error":   err.Error(),
 		})
 	}
-	c.JSON(http.StatusOK, new_id)
+	c.JSON(http.StatusCreated, new_id)
 }
 
 func (h categoryHandler) PutCategory(c *gin.Context) {
@@ -113,7 +113,6 @@ func (h categoryHandler) PutCategory(c *gin.Context) {
 		"success": true,
 		"message": "Category Updated Successfully.",
 	})
-
 }
 
 func (h categoryHandler) DeleteCategory(c *gin.Context) {
@@ -123,7 +122,6 @@ func (h categoryHandler) DeleteCategory(c *gin.Context) {
 			"message": "Request did not include an id in the path.",
 		})
 	}
-
 	if err := h.svc.DeleteCategory(c.Param("id")); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -136,7 +134,6 @@ func (h categoryHandler) DeleteCategory(c *gin.Context) {
 		"success": true,
 		"message": "Category deleted successfully.",
 	})
-
 }
 
 func bindCategory(c *gin.Context) (category *s.Category, err error) {
