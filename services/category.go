@@ -21,13 +21,12 @@ func NewCategoryService() CategoryService {
 }
 
 func (s *categoryService) CreateCategory(new_category Category) (*int64, error) {
-	var lastid int64
 	query := "INSERT INTO category (category_name) VALUES (?);"
 	res, err := DB.Exec(query, new_category.Name)
 	if err != nil {
 		return nil, err
 	}
-	lastid, err = res.LastInsertId()
+	lastid, err := res.LastInsertId()
 	if err != nil {
 		return nil, err
 	}

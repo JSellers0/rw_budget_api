@@ -92,7 +92,7 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 			"message": err.Error(),
 		})
 	}
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"success":   true,
 		"message":   "Account created successfully",
 		"accountid": new_id,
