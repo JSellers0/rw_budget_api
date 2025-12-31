@@ -51,6 +51,7 @@ func (h *cashflowHandler) GetCashflowChart(c *gin.Context) {
 			"success": false,
 			"message": err.Error(),
 		})
+		return
 	}
 	data, err := h.svc.ReadCashflowChart(year, month, limit_val)
 	if err != nil {
@@ -58,12 +59,23 @@ func (h *cashflowHandler) GetCashflowChart(c *gin.Context) {
 			"success": false,
 			"message": err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusOK, data)
 
 }
 func (h *cashflowHandler) GetCashflowCardBalances(c *gin.Context) {
-	//ToDo: GetCashflowCardBalances
+	year := c.Param("year")
+	month := c.Param("month")
+	data, err := h.svc.ReadCashflowCardBalances(year, month)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, data)
 }
 
 func getChartLimit(c *gin.Context) (limit string, err error) {
