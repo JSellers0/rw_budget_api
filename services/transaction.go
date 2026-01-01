@@ -36,7 +36,7 @@ func NewTransactionService() TransactionService {
 
 func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, error) {
 	query := "INSERT INTO transactions (transaction_date, cashflow_date, transaction_type, merchant_name, amount, accountid, categoryid, note)\n"
-	query += "VALUES (?,?,?,?,?,?,?,?)"
+	query += "VALUES ('?','?','?','?',?,?,?,'?')"
 	res, err := DB.Exec(query, new_trans.TransactionDate, new_trans.CashflowDate, new_trans.TransactionType, new_trans.MerchantName,
 		new_trans.Amount, new_trans.AccountID, new_trans.CategoryID, new_trans.Note,
 	)
@@ -76,7 +76,7 @@ func (s *transactionService) ReadTransactionByID(id string) (*Transaction, error
 }
 
 func (s *transactionService) ReadTransactionsByDateRange(start_date string, end_date string) ([]*Transaction, error) {
-	query := buildGetTransQuery("WHERE cashflow_date BETWEEN ? AND ?;")
+	query := buildGetTransQuery("WHERE cashflow_date BETWEEN '?' AND '?';")
 	res, err := DB.Query(query, start_date, end_date)
 	if err != nil {
 		return nil, err
@@ -95,8 +95,8 @@ func (s *transactionService) UpdateTransaction(mod_trans Transaction) error {
 	}
 	// ToDo: Set update date and update by
 	query := "UPDATE transactions SET\n"
-	query += "transaction_date=?, cashflow_date=?, transaction_type=?, merchant_name=?,\n"
-	query += "amount=?, accountid=?, categoryid=?, note=?\n"
+	query += "transaction_date='?', cashflow_date='?', transaction_type='?', merchant_name='?',\n"
+	query += "amount=?, accountid=?, categoryid=?, note='?'\n"
 	query += "WHERE transactionid = ?;"
 	_, err := DB.Exec(query, mod_trans.TransactionDate, mod_trans.CashflowDate, mod_trans.TransactionType,
 		mod_trans.MerchantName, mod_trans.Amount, mod_trans.AccountID, mod_trans.CategoryID, mod_trans.Note,

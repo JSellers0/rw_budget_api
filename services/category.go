@@ -21,7 +21,7 @@ func NewCategoryService() CategoryService {
 }
 
 func (s *categoryService) CreateCategory(new_category Category) (*int64, error) {
-	query := "INSERT INTO category (category_name) VALUES (?);"
+	query := "INSERT INTO category (category_name) VALUES ('?');"
 	res, err := DB.Exec(query, new_category.Name)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *categoryService) ReadCategoryByID(id string) (record *Category, err err
 }
 
 func (s *categoryService) ReadCategoriesByName(name string) (record []*Category, err error) {
-	query := buildGetCategoryQuery("WHERE category_name = ?\n;")
+	query := buildGetCategoryQuery("WHERE category_name = '?'\n;")
 	var category Category
 	if err := DB.QueryRow(query, name).Scan(
 		&category.ID,
@@ -84,7 +84,7 @@ func (s *categoryService) UpdateCategory(mod_category Category) error {
 		return nil
 	}
 	// ToDo: Set Date and User for update
-	query := "UPDATE category SET category_name = ?, update_date=?, update_by=?"
+	query := "UPDATE category SET category_name = '?', update_date='?', update_by='?'"
 	_, up_err := DB.Exec(query, mod_category.Name, "", "")
 	if up_err != nil {
 		return up_err
