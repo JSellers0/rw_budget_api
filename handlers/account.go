@@ -28,15 +28,6 @@ func NewAccountHandler(account_service s.AccountService) AccountHandler {
 	}
 }
 
-func bindAccount(c *gin.Context) (account *s.Account, err error) {
-	var new_account s.Account
-	if err := c.ShouldBind(&new_account); err != nil {
-		return nil, err
-	}
-	c.Bind(&new_account)
-	return &new_account, nil
-}
-
 func (h *accountHandler) GetAccounts(c *gin.Context) {
 	var records []*s.Account
 	var err error
@@ -56,7 +47,10 @@ func (h *accountHandler) GetAccounts(c *gin.Context) {
 			"error":   err.Error(),
 		})
 	}
-	c.JSON(http.StatusOK, records)
+	c.JSON(http.StatusOK, gin.H{
+		"success":  true,
+		"accounts": records,
+	})
 }
 
 func (h *accountHandler) GetAccountByID(c *gin.Context) {
@@ -69,7 +63,7 @@ func (h *accountHandler) GetAccountByID(c *gin.Context) {
 	}
 	record, err := h.svc.ReadAccountByID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"message": "Unable to locate the provided account.",
 		})
@@ -139,4 +133,13 @@ func (h *accountHandler) DeleteAccount(c *gin.Context) {
 		"success": true,
 		"message": "Account deleted successfully.",
 	})
+}
+
+func bindAccount(c *gin.Context) (account *s.Account, err error) {
+	var new_account s.Account
+	if err := c.ShouldBind(&new_account); err != nil {
+		return nil, err
+	}
+	c.Bind(&new_account)
+	return &new_account, nil
 }

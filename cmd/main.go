@@ -14,9 +14,9 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/accounts", ah.GetAccounts)
-	router.GET("/accounts/:id", ah.GetAccountByID)
 	router.POST("/accounts", ah.PostAccount)
-	router.PUT("/accounts", ah.PutAccount)
+	router.GET("/accounts/:id", ah.GetAccountByID)
+	router.PUT("/accounts/:id", ah.PutAccount)
 	router.DELETE("/accounts/:id", ah.DeleteAccount)
 
 	router.GET("/categories", ch.GetCategories)

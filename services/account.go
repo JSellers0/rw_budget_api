@@ -31,7 +31,7 @@ func NewAccountService() AccountService {
 func (s *accountService) CreateAccount(account Account) (id *int64, err error) {
 	var lastid int64
 	query := "INSERT INTO account (account_name, account_type, rewards_features, payment_day, statement_day)\n"
-	query += "VALUES (?, ?, ?, ?, ?)"
+	query += "VALUES ('?', '?', '?', '?', '?')"
 
 	res, err := DB.Exec(query,
 		account.Name, account.Type, account.Features,
@@ -65,7 +65,7 @@ func (s *accountService) ReadAccountByID(id string) (*Account, error) {
 }
 
 func (s *accountService) ReadAccountsByName(name string) (records []*Account, err error) {
-	query := buildGetAccountQuery("WHERE account_name = ?\n;")
+	query := buildGetAccountQuery("WHERE account_name = '?'\n;")
 	accounts := []*Account{}
 	results, err := DB.Query(query)
 	if err != nil {
@@ -120,8 +120,8 @@ func (s *accountService) UpdateAccount(mod_account Account) error {
 	}
 	mod_account = merge_account_changes(account, mod_account)
 	query := "UPDATE ACCOUNT SET\n"
-	query += "SET account_name=?, account_type=?, rewards_features=?, "
-	query += "payment_day=?, statement_day=?\n"
+	query += "SET account_name='?', account_type='?', rewards_features='?', "
+	query += "payment_day='?', statement_day='?'\n"
 	query += "WHERE accountid=?"
 
 	_, up_err := DB.Exec(query,
