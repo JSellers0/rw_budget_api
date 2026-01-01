@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"strconv"
@@ -54,22 +55,28 @@ func (h *accountHandler) GetAccounts(c *gin.Context) {
 }
 
 func (h *accountHandler) GetAccountByID(c *gin.Context) {
-	if c.Param("id") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "URL Path is missing ID parameter",
-		})
-		return
-	}
 	record, err := h.svc.ReadAccountByID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"message": "Unable to locate the provided account.",
+				"error":   err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Unable to locate the provided account.",
+			"error":   err.Error(),
 		})
 		return
+
 	}
-	c.JSON(http.StatusOK, record)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"account": record,
+	})
 }
 
 func (h *accountHandler) PostAccount(c *gin.Context) {
@@ -77,7 +84,8 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": err.Error(),
+			"message": "Error unpacking account.  Check your payload",
+			"error":   err.Error(),
 		})
 	}
 	new_id, err := h.svc.CreateAccount(*account)
@@ -87,10 +95,11 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 			"message": err.Error(),
 		})
 	}
+	account.ID = strconv.Itoa(int(*new_id))
 	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"message": "Account created successfully",
-		"data":    `{"accountid": ` + strconv.Itoa(int(*new_id)) + `}`,
+		"success":  true,
+		"message":  "Account created successfully",
+		"accounts": account,
 	})
 }
 
@@ -99,14 +108,25 @@ func (h *accountHandler) PutAccount(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": err.Error(),
+			"message": "Error unpacking account.  Check your payload",
+			"error":   err.Error(),
 		})
 	}
 	if err = h.svc.UpdateAccount(*account); err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"message": "Unable to locate the provided account.",
+				"error":   err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
-			"message": err.Error(),
+			"message": "Unable to locate the provided account.",
+			"error":   err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -115,17 +135,19 @@ func (h *accountHandler) PutAccount(c *gin.Context) {
 }
 
 func (h *accountHandler) DeleteAccount(c *gin.Context) {
-	if c.Param("id") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "URL Path is missing ID parameter",
-		})
-		return
-	}
 	if err := h.svc.DeleteAccount(c.Param("id")); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"message": "Unable to locate the provided account.",
+				"error":   err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Unable to locate the provided account.",
+			"error":   err.Error(),
 		})
 		return
 	}
