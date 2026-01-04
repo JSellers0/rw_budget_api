@@ -38,7 +38,10 @@ func (h *cashflowHandler) GetCashflowSummary(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, gin.H{
+		"success":   true,
+		"cashflows": data,
+	})
 }
 
 func (h *cashflowHandler) GetCashflowChart(c *gin.Context) {

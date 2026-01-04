@@ -76,8 +76,8 @@ func (h *accountHandler) GetAccountByID(c *gin.Context) {
 
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"account": record,
+		"success":  true,
+		"accounts": record,
 	})
 }
 

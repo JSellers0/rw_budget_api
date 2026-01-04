@@ -39,7 +39,8 @@ func NewCashflowService() CashflowService {
 
 func (s *cashflowService) ReadCashflowSummary(year string, month string) ([]*SummaryData, error) {
 	var records []*SummaryData
-	base_query := "SELECT *\nFROM vw_cashflow\nWHERE flow_year = ?\n\t AND flow_month = ?\n;"
+	base_query := "SELECT flow_year, flow_month, cashflow_group, month_group, amount\n"
+	base_query += "FROM vw_cashflow_summary_api\nWHERE flow_year = ?\n\t AND flow_month = ?\n;"
 
 	res, err := DB.Query(base_query, year, month)
 	if err != nil {

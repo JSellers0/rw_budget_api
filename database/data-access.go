@@ -19,7 +19,8 @@ func GetDB() *sql.DB {
 			log.Fatal("Error loading .env file")
 		}
 		safe_pwd := os.Getenv("MSQLPWD")
-		DB = connectDB(safe_pwd)
+		db_name := os.Getenv("DBNAME")
+		DB = connectDB(safe_pwd, db_name)
 	}
 	pingErr := DB.Ping()
 	if pingErr != nil {
@@ -29,14 +30,14 @@ func GetDB() *sql.DB {
 	return DB
 }
 
-func connectDB(pwd string) *sql.DB {
+func connectDB(pwd string, db_name string) *sql.DB {
 
 	cfg := mysql.NewConfig()
 	cfg.User = "svc_rw_budget"
 	cfg.Passwd = pwd
 	cfg.Net = "tcp"
 	cfg.Addr = "192.168.40.101:3307"
-	cfg.DBName = "rw_budget_dev"
+	cfg.DBName = db_name
 
 	var err error
 	db, err := sql.Open("mysql", cfg.FormatDSN())
