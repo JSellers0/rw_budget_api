@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	s "rw_budget/api/services"
 
@@ -87,15 +89,26 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 			"message": "Error unpacking account.  Check your payload",
 			"error":   err.Error(),
 		})
+		return
 	}
 	new_id, err := h.svc.CreateAccount(*account)
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate") {
+			c.JSON(http.StatusConflict, gin.H{
+				"success": false,
+				"message": "Account already exists.",
+				"error":   err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": err.Error(),
+			"message": "Error creating account.",
+			"error":   err.Error(),
 		})
+		return
 	}
-	account.ID = strconv.Itoa(int(*new_id))
+	account.ID = strconv.FormatInt(*new_id, 10)
 	c.JSON(http.StatusCreated, gin.H{
 		"success":  true,
 		"message":  "Account created successfully",
@@ -104,15 +117,22 @@ func (h *accountHandler) PostAccount(c *gin.Context) {
 }
 
 func (h *accountHandler) PutAccount(c *gin.Context) {
+	if c.Writer.Written() {
+		fmt.Println("Headers written at start of handler!")
+	}
 	account, err := bindAccount(c)
+	if c.Writer.Written() {
+		fmt.Println("Headers written after bind.")
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": "Error unpacking account.  Check your payload",
 			"error":   err.Error(),
 		})
+		return
 	}
-	if err = h.svc.UpdateAccount(*account); err != nil {
+	if err := h.svc.UpdateAccount(*account); err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
@@ -123,7 +143,7 @@ func (h *accountHandler) PutAccount(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
-			"message": "Unable to locate the provided account.",
+			"message": "Unable to update the provided account.",
 			"error":   err.Error(),
 		})
 		return
@@ -159,9 +179,11 @@ func (h *accountHandler) DeleteAccount(c *gin.Context) {
 
 func bindAccount(c *gin.Context) (account *s.Account, err error) {
 	var new_account s.Account
-	if err := c.ShouldBind(&new_account); err != nil {
+	if err = c.ShouldBind(&new_account); err != nil {
 		return nil, err
 	}
-	c.Bind(&new_account)
+	if err = c.Bind(&new_account); err != nil {
+		return nil, err
+	}
 	return &new_account, nil
 }

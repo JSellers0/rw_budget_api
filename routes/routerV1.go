@@ -27,9 +27,9 @@ func setAccountRoutesV1(g *gin.Engine) {
 func setCashflowRoutesV1(g *gin.Engine) {
 	cfh := h.NewCashflowHandler(s.NewCashflowService())
 	cfr := g.Group("/v1/cashflows")
-	cfr.GET("cashflows/summary/:year/:month", cfh.GetCashflowSummary)
-	cfr.GET("cashflows/chart/:year/:month", cfh.GetCashflowChart)
-	cfr.GET("cashflows/card_balances/:year/:month", cfh.GetCashflowCardBalances)
+	cfr.GET("/summary/:year/:month", cfh.GetCashflowSummary)
+	cfr.GET("/chart/:year/:month", cfh.GetCashflowChart)
+	cfr.GET("/card_balances/:year/:month", cfh.GetCashflowCardBalances)
 }
 
 func setCategoryRoutesV1(g *gin.Engine) {
@@ -45,9 +45,9 @@ func setCategoryRoutesV1(g *gin.Engine) {
 func setTransactionRoutesV1(g *gin.Engine) {
 	th := h.NewTransactionHandler(s.NewTransactionService())
 	tr := g.Group("/v1/transactions")
-	tr.GET("/transactions", th.GetTransactions)
-	tr.POST("/transactions", th.PostTransaction)
-	tr.GET("/transactions/:id", th.GetTransactionByID)
-	tr.PUT("/transactions/:id", th.PutTransaction)
-	tr.DELETE("/transactions/:id", th.DeleteTransaction)
+	tr.GET("/", th.GetTransactions)
+	tr.POST("/", th.PostTransaction)
+	tr.GET("/:id", th.GetTransactionByID)
+	tr.PUT("/:id", th.PutTransaction)
+	tr.DELETE("/:id", th.DeleteTransaction)
 }

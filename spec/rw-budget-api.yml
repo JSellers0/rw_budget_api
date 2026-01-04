@@ -197,15 +197,25 @@ components:
       type: object
       required:
         - name
-        - email
+        - type
       properties:
         name:
           type: string
-          example: "John Doe"
-        email:
+          example: "My Bank Account"
+        type:
           type: string
-          format: email
-          example: "john@example.com"
+          example: "Checking"
+        features:
+          type: string
+          example: "2x points at restaurants"
+        payment_day:
+          type: string
+          description: The day payment is due
+          example: "3rd"
+        statement_day:
+          type: string
+          description: The day statements are generated
+          example: "5th"
 
   securitySchemes:
     BearerAuth:

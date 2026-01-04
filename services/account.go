@@ -1,9 +1,5 @@
 package services
 
-import (
-	"time"
-)
-
 type Account struct {
 	ID       string `json:"accountid" form:"accountid"`
 	Name     string `json:"account_name" form:"account_name" binding:"required"`
@@ -30,8 +26,8 @@ func NewAccountService() AccountService {
 
 func (s *accountService) CreateAccount(account Account) (id *int64, err error) {
 	var lastid int64
-	query := "INSERT INTO account (account_name, account_type, rewards_features, payment_day, statement_day)\n"
-	query += "VALUES ('?', '?', '?', '?', '?')"
+	query := "INSERT INTO account (account_name, account_type, rewards_features, payment_day, statement_day) "
+	query += "VALUES (?, ?, ?, ?, ?);"
 
 	res, err := DB.Exec(query,
 		account.Name, account.Type, account.Features,
@@ -65,9 +61,9 @@ func (s *accountService) ReadAccountByID(id string) (*Account, error) {
 }
 
 func (s *accountService) ReadAccountsByName(name string) (records []*Account, err error) {
-	query := buildGetAccountQuery("WHERE account_name = '?'\n;")
+	query := buildGetAccountQuery("WHERE account_name = ?\n;")
 	accounts := []*Account{}
-	results, err := DB.Query(query)
+	results, err := DB.Query(query, name)
 	if err != nil {
 		return nil, err
 	}
@@ -119,14 +115,15 @@ func (s *accountService) UpdateAccount(mod_account Account) error {
 		return get_err
 	}
 	mod_account = merge_account_changes(account, mod_account)
-	query := "UPDATE ACCOUNT SET\n"
-	query += "SET account_name='?', account_type='?', rewards_features='?', "
-	query += "payment_day='?', statement_day='?'\n"
+	println("merged account type ", mod_account.Type)
+	query := "UPDATE account SET\n"
+	query += "account_name=?, account_type=?, rewards_features=?, "
+	query += "payment_day=?, statement_day=?\n"
 	query += "WHERE accountid=?"
 
 	_, up_err := DB.Exec(query,
 		mod_account.Name, mod_account.Type, mod_account.Features,
-		mod_account.PmtDay, mod_account.StmtDay, time.Now().UTC().Format(time.DateTime),
+		mod_account.PmtDay, mod_account.StmtDay, mod_account.ID,
 	)
 	if up_err != nil {
 		return up_err
@@ -140,7 +137,7 @@ func (s *accountService) DeleteAccount(accountid string) error {
 		return get_err
 
 	}
-	query := "DELETE FROM accounts WHERE accountid = ?;"
+	query := "DELETE FROM account WHERE accountid = ?;"
 	_, del_err := DB.Exec(query, accountid)
 	if del_err != nil {
 		return del_err

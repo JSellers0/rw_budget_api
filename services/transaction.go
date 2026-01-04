@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 )
 
@@ -36,7 +37,7 @@ func NewTransactionService() TransactionService {
 
 func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, error) {
 	query := "INSERT INTO transactions (transaction_date, cashflow_date, transaction_type, merchant_name, amount, accountid, categoryid, note)\n"
-	query += "VALUES ('?','?','?','?',?,?,?,'?')"
+	query += "VALUES (?,?,?,?,?,?,?,?)"
 	res, err := DB.Exec(query, new_trans.TransactionDate, new_trans.CashflowDate, new_trans.TransactionType, new_trans.MerchantName,
 		new_trans.Amount, new_trans.AccountID, new_trans.CategoryID, new_trans.Note,
 	)
@@ -51,12 +52,13 @@ func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, e
 }
 
 func (s *transactionService) ReadAllTransactions() ([]*Transaction, error) {
+	fmt.Println(buildGetTransQuery(";"))
 	res, err := DB.Query(buildGetTransQuery(";"))
 	if err != nil {
 		return nil, err
 	}
 	records, err := packageRows(res)
-	if err := res.Scan(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return records, nil
