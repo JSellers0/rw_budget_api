@@ -19,10 +19,10 @@ type CardBalance struct {
 	FlowMonth   int     `json:"flow_month"`
 	AccountID   int     `json:"accountid"`
 	AccountName string  `json:"account_name"`
-	Chg_bal     float32 `json:"chg_bal"`
-	Pmt_bal     float32 `json:"pmt_bal"`
-	Cur_bal     float32 `json:"cur_bal"`
-	Pnd_bal     float32 `json:"pnd_bal"`
+	Chg_bal     float64 `json:"chg_bal"`
+	Pmt_bal     float64 `json:"pmt_bal"`
+	Cur_bal     float64 `json:"cur_bal"`
+	Pnd_bal     float64 `json:"pnd_bal"`
 }
 
 type CashflowService interface {
