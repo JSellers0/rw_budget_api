@@ -11,11 +11,20 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://api.example.com/v1
+  - url: https://api.example.com/{version}
+    variables:
+      version:
+        default: v1
     description: Production server
-  - url: https://staging-api.example.com/v1
+  - url: https://staging-api.example.com/{version}
+    variables:
+      version:
+        default: v1
     description: Staging server
-  - url: http://localhost:8080/
+  - url: http://localhost:8080/{version}
+    variables:
+      version:
+        default: v1
     description: Local development server
 
 paths:
@@ -82,7 +91,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/accountInput'
+              $ref: '#/components/schemas/account_input'
       responses:
         '201':
           description: account created successfully
@@ -92,7 +101,6 @@ paths:
                 $ref: '#/components/schemas/Account'
         '400':
           description: Invalid input
-
   /accounts/{id}:
     get:
       summary: Get account by ID
@@ -135,7 +143,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/accountInput'
+              $ref: '#/components/schemas/account_input'
       responses:
         '200':
           description: account updated successfully
@@ -165,6 +173,171 @@ paths:
         '404':
           description: Account not found
 
+  /cashflows/summary/{year}/{month}:
+    get:
+      summary: Get cashflow summary for the provided year and month.
+      tags:
+        - Cashflows
+      parameters:
+        - name: year
+          in: path
+          description: The year for which to return a cashflow summary.
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: The year for which to return a cashflow summary in combination with the year parameter.
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/cashflow_summary'
+        '404':
+          description: Data not found for the year and month provided.
+        '500':
+          description: Internal server error.
+
+  /cashflows/chart/{year}/{month}:
+    get:
+      summary: Retrieve cashflow data for the year and month provided formatted for a cashflow chart.
+      tags:
+        - Cashflows
+      parameters:
+        - name: year
+          in: path
+          description: The year for which to return a cashflow summary.
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: The year for which to return a cashflow summary in combination with the year parameter.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/cashflow_chart'
+        '404':
+          description: Data not found for the year and month provided.
+        '500':
+          description: Internal server error.
+  /cashflows/card_balances/{year}/{month}:
+    get:
+      summary: Retrieve card balance data for the year and month provided.
+      tags:
+        - Cashflows
+      parameters:
+        - name: year
+          in: path
+          description: The year for which to return a cashflow summary.
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: The year for which to return a cashflow summary in combination with the year parameter.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/cashflow_card_balances'
+        '404':
+          description: Data not found for the year and month provided.
+        '500':
+          description: Internal server error.
+
+  /categories:
+    get:
+      summary: Retrieve categories
+      parameters:
+        - name: name
+          in: query
+          description: Filter accounts by account name
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Unable to locate categories
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a new category
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/category_input'
+      responses:
+        '200':
+          description: OK
+
+  /categories/:id:
+    get:
+      summary: Create a new category
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          description: account ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    put:
+      summary: Create a new category
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          description: account ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: Create a new category
+      tags:
+        - Categories
+      parameters:
+        - name: id
+          in: path
+          description: account ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+
 components:
   schemas:
     Account:
@@ -192,8 +365,7 @@ components:
         statement_day:
           type: string
           example: "5th"
-
-    accountInput:
+    account_input:
       type: object
       required:
         - name
@@ -216,6 +388,99 @@ components:
           type: string
           description: The day statements are generated
           example: "5th"
+    cashflow_summary:
+      type: object
+      properties:
+        flow_year:
+          type: integer
+          example: 2026
+        flow_month:
+          type: integer
+          example: 01
+        cashflow_group:
+          type: string
+          description: |
+            The cashflow category of the amount.
+            expens: Cash out due to expenses.
+            income: Cash in due to income.
+            remain: Cash remaining from income less expenses.
+          enum: [expens, income, remain]
+          example: remain
+        month_group:
+          type: string
+          description: |
+            The paycheck or part of the month of the amount.
+            top: The first half of the month or the first paycheck
+            bot: The second half of the month or the second paycheck 
+            sum: The combination of both halves paychecks for the month
+          enum: [top, bot, sum]
+          example: sum
+        amount:
+          type: number
+          format: float
+          example: 123.45
+    cashflow_chart:
+      type: object
+      properties:
+        tran_month_name:
+          type: string
+          description: The full name of the month for display on a chart axis
+          example: January
+        cashflow_category:
+          # ToDo: Align this with CashflowSummary month group
+          type: string
+          description: |
+            The paycheck or part of the month of the amount.
+            top: The first half of the month or the first paycheck
+            bot: The second half of the month or the second paycheck 
+            total: The combination of both halves or paychecks for the month
+          enum: [top, bot, total]
+          example: total
+        amount:
+          type: number
+          format: float
+          example: 123.45
+    cashflow_card_balances:
+      type: object
+      properties:
+        flow_year:
+          type: integer
+          example: 2026
+        flow_month:
+          type: integer
+          example: 01
+        accountid:
+          type: integer
+          example: 1
+        account_name:
+          type: string
+          example: Credit Card 1
+        chg_bal:
+          description: The sum of charges to the card for the month through the current date.
+          type: number
+          format: float
+          example: 123.45
+        pmt_bal:
+          description: The sum of payments applied to the card for the month through the curent date.
+          type: number
+          format: float
+          example: 123.45
+        cur_bal:
+          description: The current balance of the card for the month through the current date (chg_bal - pmt_bal)
+          type: number
+          format: float
+          example: 123.45
+        pnd_bal:
+          description: |
+            The sum of charges to the card less payments applied to the card for the whole month.
+            This includes expected or pending charges or payments that are not yet posted.
+          type: number
+          format: float
+          example: 123.45
+    category:
+      type: object
+    category_input:
+      type: object
 
   securitySchemes:
     BearerAuth:
