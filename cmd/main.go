@@ -11,7 +11,7 @@ import (
 
 func main() {
 	svr := gin.Default()
-	svr.GET("/health", func(c *gin.Context) {
+	svr.GET("/v1/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":    "available",
 			"timestamp": time.Now().Unix(),
