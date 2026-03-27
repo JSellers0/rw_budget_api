@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,11 @@ func main() {
 		})
 	})
 	router.SetupRoutesV1(svr)
+	app_port, is_set := os.LookupEnv("APP_PORT")
+	if !is_set {
+		app_port = "8081"
+	}
+	host_name := "localhost:" + app_port
 
-	svr.Run("localhost:8080")
+	svr.Run(host_name)
 }
