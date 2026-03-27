@@ -1,6 +1,8 @@
 module rw_budget/api
 
-go 1.25.5
+go 1.23.0
+
+toolchain go1.24.4
 
 require (
 	github.com/gin-gonic/gin v1.11.0
