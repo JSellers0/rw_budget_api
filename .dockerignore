@@ -1,0 +1,26 @@
+# .dockerignore
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.md
+*.log
+*.test
+*.out
+coverage.txt
+.DS_Store
+.env
+.env.*
+!.env.example
+tmp/
+vendor/
+bin/
+dist/
+build/
+node_modules/
+*.swp
+*.swo
+*~
+__pycache__
+*.pyc
