@@ -1,8 +1,8 @@
 package routes
 
 import (
-	h "rw_budget/api/handlers"
-	s "rw_budget/api/services"
+	h "rw_budget_api/handlers"
+	s "rw_budget_api/services"
 
 	"github.com/gin-gonic/gin"
 )

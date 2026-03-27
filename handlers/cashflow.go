@@ -3,7 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
-	s "rw_budget/api/services"
+	s "rw_budget_api/services"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

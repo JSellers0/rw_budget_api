@@ -1,4 +1,4 @@
-module rw_budget/api
+module rw_budget_api
 
 go 1.23.0
 

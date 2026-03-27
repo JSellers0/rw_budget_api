@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	s "rw_budget/api/services"
+	s "rw_budget_api/services"
 
 	"github.com/gin-gonic/gin"
 )

@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	router "rw_budget/api/routes"
+	router "rw_budget_api/routes"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		})
 	})
 	router.SetupRoutesV1(svr)
-	app_port, is_set := os.LookupEnv("APP_PORT")
+	app_port, is_set := os.LookupEnv("GIN_API_PORT")
 	if !is_set {
 		app_port = "8081"
 	}
