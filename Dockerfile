@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates tzdata
@@ -14,9 +14,11 @@ RUN go mod download && go mod verify
 # Copy source code
 COPY . .
 
-# Build the application with optimizations
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s -X main.version=$(git describe --tags 2>/dev/null || echo 'dev')" \
+# Build for target platform
+ARG TARGETOS=linux
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build \
+    -ldflags="-w -s" \
     -o api \
     ./cmd
 
@@ -33,8 +35,8 @@ RUN addgroup -g 1000 -S appgroup && \
 # Set working directory
 WORKDIR /app
 
-RUN mkdir -p /app/logs &&\
-    chown -R appuser:appgroup /app/logs
+RUN mkdir -p logs &&\
+    chown -R appuser:appgroup logs
 
 # Copy binary from builder
 COPY --from=builder /app/api /app/api
@@ -54,8 +56,7 @@ RUN chmod +x /app/api && \
 USER appuser
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8081
 
 # Run the application
-CMD ["/app/api/cmd"]
-# CMD ["tail", "-f", "/dev/null"]
+CMD ["/app/api"]
