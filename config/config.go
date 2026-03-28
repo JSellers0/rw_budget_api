@@ -28,7 +28,7 @@ func Init() {
 	DbUser = getEnv("DB_USER", "svc_rw_budget")
 	DbPswd = getEnv("DB_PSWD", "FAIL")
 	DbName = getEnv("DB_NAME", "rw_budget_dev")
-	LogDir = getEnv("LOG_DIR", "${HOME}/projects/rw_budget_api/logs/dev")
+	LogDir = getEnv("LOG_DIR", "logs/dev")
 }
 
 func getEnv(key, defaultValue string) string {
