@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
 )
 
@@ -54,7 +53,6 @@ func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, e
 }
 
 func (s *transactionService) ReadAllTransactions() ([]*Transaction, error) {
-	fmt.Println(buildGetTransQuery(";"))
 	res, err := s.db.Query(buildGetTransQuery(";"))
 	if err != nil {
 		return nil, err

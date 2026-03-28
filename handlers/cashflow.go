@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	s "rw_budget_api/services"
 	"strconv"
@@ -38,9 +37,9 @@ func (h *cashflowHandler) GetCashflowSummary(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success":   true,
-		"cashflows": data,
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Data:    data,
 	})
 }
 
@@ -49,7 +48,6 @@ func (h *cashflowHandler) GetCashflowChart(c *gin.Context) {
 	month := c.Param("month")
 	limit_val, err := getChartLimit(c)
 	if err != nil {
-		log.Print(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": err.Error(),
@@ -64,9 +62,9 @@ func (h *cashflowHandler) GetCashflowChart(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"chart":   data,
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Data:    data,
 	})
 
 }
@@ -81,7 +79,10 @@ func (h *cashflowHandler) GetCashflowCardBalances(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Data:    data,
+	})
 }
 
 func getChartLimit(c *gin.Context) (limit string, err error) {
