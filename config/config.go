@@ -21,7 +21,7 @@ var (
 func Init() {
 	_ = godotenv.Load()
 	GinMode = getEnv("GIN_MODE", "debug")
-	ApiHost = getEnv("API_HOST", "12.0.0.1")
+	ApiHost = getEnv("API_HOST", "127.0.0.1")
 	ApiPort = getEnv("API_PORT", "8081")
 	DbHost = getEnv("DB_HOST", "192.168.40.101")
 	DbPort = getEnv("DB_PORT", "3307")
