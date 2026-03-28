@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates tzdata
@@ -17,7 +17,7 @@ COPY . .
 # Build the application with optimizations
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s -X main.version=$(git describe --tags 2>/dev/null || echo 'dev')" \
-    -o /app/bin/api \
+    -o api \
     ./cmd
 
 # Stage 2: Final stage
@@ -33,8 +33,11 @@ RUN addgroup -g 1000 -S appgroup && \
 # Set working directory
 WORKDIR /app
 
+RUN mkdir -p /app/logs &&\
+    chown -R appuser:appgroup /app/logs
+
 # Copy binary from builder
-COPY --from=builder /app/bin/api /app/api
+COPY --from=builder /app/api /app/api
 
 # Copy configuration files (if any)
 # COPY --chown=appuser:appgroup configs/ /app/configs/
@@ -53,9 +56,6 @@ USER appuser
 # Expose port
 EXPOSE 8080
 
-# Health check (optional - remove if using compose healthcheck)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
-
 # Run the application
-# CMD ["/app/api"]
+CMD ["/app/api/cmd"]
+# CMD ["tail", "-f", "/dev/null"]
