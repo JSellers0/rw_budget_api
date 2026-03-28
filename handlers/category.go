@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	s "rw_budget_api/services"
 
@@ -65,7 +64,6 @@ func (h categoryHandler) GetCategoryByID(c *gin.Context) {
 func (h categoryHandler) PostCategory(c *gin.Context) {
 	new_category, err := bindCategory(c)
 	if err != nil {
-		log.Print(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": err.Error(),
@@ -94,7 +92,6 @@ func (h categoryHandler) PostCategory(c *gin.Context) {
 func (h categoryHandler) PutCategory(c *gin.Context) {
 	category, err := bindCategory(c)
 	if err != nil {
-		log.Print(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": "",
