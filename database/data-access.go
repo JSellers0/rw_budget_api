@@ -15,8 +15,9 @@ func GetDB() error {
 	if DB == nil {
 		return nil // Already Connected
 	}
-	log.Printf("Connecting to Database %s ....", config.DbName)
-	DB, err := connectDB()
+	log.Printf("Connecting to Database %s ...", config.DbName)
+	var err error
+	DB, err = sql.Open("mysql", getDbDSN())
 	if err != nil {
 		return err
 	}
@@ -30,7 +31,7 @@ func GetDB() error {
 	return nil
 }
 
-func connectDB() (*sql.DB, error) {
+func getDbDSN() string {
 	cfg := mysql.NewConfig()
 	cfg.User = config.DbUser
 	cfg.Passwd = config.DbPswd
@@ -38,11 +39,5 @@ func connectDB() (*sql.DB, error) {
 	cfg.Addr = config.DbHost + ":" + config.DbPort
 	cfg.DBName = config.DbName
 
-	var err error
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	return cfg.FormatDSN()
 }
