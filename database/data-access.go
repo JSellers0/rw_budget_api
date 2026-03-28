@@ -12,7 +12,7 @@ import (
 var DB *sql.DB
 
 func GetDB() error {
-	if DB == nil {
+	if DB != nil {
 		return nil // Already Connected
 	}
 	log.Printf("Connecting to Database %s ...", config.DbName)
