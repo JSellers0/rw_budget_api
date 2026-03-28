@@ -1,5 +1,7 @@
 package services
 
+import "database/sql"
+
 type SummaryData struct {
 	FlowYear      int     `json:"flow_year"`
 	FlowMonth     int     `json:"flow_month"`
@@ -31,10 +33,12 @@ type CashflowService interface {
 	ReadCashflowCardBalances(string, string) ([]*CardBalance, error)
 }
 
-type cashflowService struct{}
+type cashflowService struct {
+	db *sql.DB
+}
 
-func NewCashflowService() CashflowService {
-	return &cashflowService{}
+func NewCashflowService(db *sql.DB) CashflowService {
+	return &cashflowService{db: db}
 }
 
 func (s *cashflowService) ReadCashflowSummary(year string, month string) ([]*SummaryData, error) {
@@ -42,7 +46,7 @@ func (s *cashflowService) ReadCashflowSummary(year string, month string) ([]*Sum
 	base_query := "SELECT flow_year, flow_month, cashflow_group, month_group, amount\n"
 	base_query += "FROM vw_cashflow_summary_api\nWHERE flow_year = ?\n\t AND flow_month = ?\n;"
 
-	res, err := DB.Query(base_query, year, month)
+	res, err := s.db.Query(base_query, year, month)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,7 @@ func (s *cashflowService) ReadCashflowChart(year string, month string, chart_lim
 	ORDER BY tran_month_start ASC
 	;
 	`
-	res, err := DB.Query(chart_query, month_start, chart_limit)
+	res, err := s.db.Query(chart_query, month_start, chart_limit)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +98,7 @@ func (s *cashflowService) ReadCashflowChart(year string, month string, chart_lim
 func (s *cashflowService) ReadCashflowCardBalances(year string, month string) ([]*CardBalance, error) {
 	var records []*CardBalance
 	cb_query := "SELECT * FROM vw_cashflow_card_balances WHERE flow_year = ? AND flow_month = ?;"
-	res, err := DB.Query(cb_query, year, month)
+	res, err := s.db.Query(cb_query, year, month)
 	if err != nil {
 		return nil, err
 	}

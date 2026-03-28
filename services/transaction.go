@@ -29,16 +29,18 @@ type TransactionService interface {
 	DeleteTransaction(string) error
 }
 
-type transactionService struct{}
+type transactionService struct {
+	db *sql.DB
+}
 
-func NewTransactionService() TransactionService {
-	return &transactionService{}
+func NewTransactionService(db *sql.DB) TransactionService {
+	return &transactionService{db: db}
 }
 
 func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, error) {
 	query := "INSERT INTO transactions (transaction_date, cashflow_date, transaction_type, merchant_name, amount, accountid, categoryid, note)\n"
 	query += "VALUES (?,?,?,?,?,?,?,?)"
-	res, err := DB.Exec(query, new_trans.TransactionDate, new_trans.CashflowDate, new_trans.TransactionType, new_trans.MerchantName,
+	res, err := s.db.Exec(query, new_trans.TransactionDate, new_trans.CashflowDate, new_trans.TransactionType, new_trans.MerchantName,
 		new_trans.Amount, new_trans.AccountID, new_trans.CategoryID, new_trans.Note,
 	)
 	if err != nil {
@@ -53,7 +55,7 @@ func (s *transactionService) CreateTransaction(new_trans Transaction) (*int64, e
 
 func (s *transactionService) ReadAllTransactions() ([]*Transaction, error) {
 	fmt.Println(buildGetTransQuery(";"))
-	res, err := DB.Query(buildGetTransQuery(";"))
+	res, err := s.db.Query(buildGetTransQuery(";"))
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,7 @@ func (s *transactionService) ReadAllTransactions() ([]*Transaction, error) {
 func (s *transactionService) ReadTransactionByID(id string) (*Transaction, error) {
 	var data Transaction
 	query := buildGetTransQuery("WHERE transactionid = ?")
-	if err := DB.QueryRow(query, id).Scan(
+	if err := s.db.QueryRow(query, id).Scan(
 		&data.TransactionID, &data.TransactionDate, &data.CashflowDate, &data.MerchantName,
 		&data.Amount, &data.TransactionType, &data.Note, &data.AccountID, &data.AccountName,
 		&data.CategoryID, &data.CategoryName,
@@ -79,7 +81,7 @@ func (s *transactionService) ReadTransactionByID(id string) (*Transaction, error
 
 func (s *transactionService) ReadTransactionsByDateRange(start_date string, end_date string) ([]*Transaction, error) {
 	query := buildGetTransQuery("WHERE cashflow_date BETWEEN '?' AND '?';")
-	res, err := DB.Query(query, start_date, end_date)
+	res, err := s.db.Query(query, start_date, end_date)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +102,7 @@ func (s *transactionService) UpdateTransaction(mod_trans Transaction) error {
 	query += "transaction_date='?', cashflow_date='?', transaction_type='?', merchant_name='?',\n"
 	query += "amount=?, accountid=?, categoryid=?, note='?'\n"
 	query += "WHERE transactionid = ?;"
-	_, err := DB.Exec(query, mod_trans.TransactionDate, mod_trans.CashflowDate, mod_trans.TransactionType,
+	_, err := s.db.Exec(query, mod_trans.TransactionDate, mod_trans.CashflowDate, mod_trans.TransactionType,
 		mod_trans.MerchantName, mod_trans.Amount, mod_trans.AccountID, mod_trans.CategoryID, mod_trans.Note,
 	)
 	if err != nil {
@@ -116,7 +118,7 @@ func (s *transactionService) DeleteTransaction(id string) error {
 
 	}
 	query := "DELETE FROM transactions WHERE transactionid = ?;"
-	_, del_err := DB.Exec(query, id)
+	_, del_err := s.db.Exec(query, id)
 	if del_err != nil {
 		return del_err
 	}

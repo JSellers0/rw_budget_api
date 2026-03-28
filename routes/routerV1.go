@@ -1,21 +1,33 @@
 package routes
 
 import (
+	"net/http"
 	h "rw_budget_api/handlers"
-	s "rw_budget_api/services"
+	"rw_budget_api/services"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutesV1(r *gin.Engine) {
-	setAccountRoutesV1(r)
-	setCashflowRoutesV1(r)
-	setCategoryRoutesV1(r)
-	setTransactionRoutesV1(r)
+func SetupRoutesV1(r *gin.Engine, s *services.Services) {
+	setHealthRouteV1(r)
+	setAccountRoutesV1(r, s)
+	setCashflowRoutesV1(r, s)
+	setCategoryRoutesV1(r, s)
+	setTransactionRoutesV1(r, s)
 }
 
-func setAccountRoutesV1(g *gin.Engine) {
-	ah := h.NewAccountHandler(s.NewAccountService())
+func setHealthRouteV1(g *gin.Engine) {
+	g.GET("/v1/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":    "available",
+			"timestamp": time.Now().Unix(),
+		})
+	})
+}
+
+func setAccountRoutesV1(g *gin.Engine, s *services.Services) {
+	ah := h.NewAccountHandler(s.Account)
 	ar := g.Group("/v1/accounts")
 	ar.GET("/", ah.GetAccounts)
 	ar.POST("/", ah.PostAccount)
@@ -24,16 +36,16 @@ func setAccountRoutesV1(g *gin.Engine) {
 	ar.DELETE("/:id", ah.DeleteAccount)
 }
 
-func setCashflowRoutesV1(g *gin.Engine) {
-	cfh := h.NewCashflowHandler(s.NewCashflowService())
+func setCashflowRoutesV1(g *gin.Engine, s *services.Services) {
+	cfh := h.NewCashflowHandler(s.Cashflow)
 	cfr := g.Group("/v1/cashflows")
 	cfr.GET("/summary/:year/:month", cfh.GetCashflowSummary)
 	cfr.GET("/chart/:year/:month", cfh.GetCashflowChart)
 	cfr.GET("/card_balances/:year/:month", cfh.GetCashflowCardBalances)
 }
 
-func setCategoryRoutesV1(g *gin.Engine) {
-	ch := h.NewCategoryHandler(s.NewCategoryService())
+func setCategoryRoutesV1(g *gin.Engine, s *services.Services) {
+	ch := h.NewCategoryHandler(s.Category)
 	cr := g.Group("/v1/categories")
 	cr.GET("/", ch.GetCategories)
 	cr.POST("/", ch.PostCategory)
@@ -42,8 +54,8 @@ func setCategoryRoutesV1(g *gin.Engine) {
 	cr.DELETE("/:id", ch.DeleteCategory)
 }
 
-func setTransactionRoutesV1(g *gin.Engine) {
-	th := h.NewTransactionHandler(s.NewTransactionService())
+func setTransactionRoutesV1(g *gin.Engine, s *services.Services) {
+	th := h.NewTransactionHandler(s.Transaction)
 	tr := g.Group("/v1/transactions")
 	tr.GET("/", th.GetTransactions)
 	tr.POST("/", th.PostTransaction)

@@ -1,5 +1,7 @@
 package services
 
+import "database/sql"
+
 type Category struct {
 	ID   int    `json:"categoryid" form:"categoryid"`
 	Name string `json:"category_name" form:"category_name" binding:"required"`
@@ -14,15 +16,17 @@ type CategoryService interface {
 	DeleteCategory(string) error
 }
 
-type categoryService struct{}
+type categoryService struct {
+	db *sql.DB
+}
 
-func NewCategoryService() CategoryService {
-	return &categoryService{}
+func NewCategoryService(db *sql.DB) CategoryService {
+	return &categoryService{db: db}
 }
 
 func (s *categoryService) CreateCategory(new_category Category) (*int64, error) {
 	query := "INSERT INTO category (category_name) VALUES ('?');"
-	res, err := DB.Exec(query, new_category.Name)
+	res, err := s.db.Exec(query, new_category.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +40,7 @@ func (s *categoryService) CreateCategory(new_category Category) (*int64, error) 
 func (s *categoryService) ReadCategoryByID(id string) (record *Category, err error) {
 	query := buildGetCategoryQuery("WHERE categoryid = ?\n;")
 	var category Category
-	if err := DB.QueryRow(query, id).Scan(
+	if err := s.db.QueryRow(query, id).Scan(
 		&category.ID,
 		&category.Name,
 	); err != nil {
@@ -48,7 +52,7 @@ func (s *categoryService) ReadCategoryByID(id string) (record *Category, err err
 func (s *categoryService) ReadCategoriesByName(name string) (record []*Category, err error) {
 	query := buildGetCategoryQuery("WHERE category_name = '?'\n;")
 	var category Category
-	if err := DB.QueryRow(query, name).Scan(
+	if err := s.db.QueryRow(query, name).Scan(
 		&category.ID,
 		&category.Name,
 	); err != nil {
@@ -59,7 +63,7 @@ func (s *categoryService) ReadCategoriesByName(name string) (record []*Category,
 
 func (s *categoryService) ReadAllCategories() (record []*Category, err error) {
 	categories := []*Category{}
-	results, err := DB.Query(buildGetCategoryQuery(""))
+	results, err := s.db.Query(buildGetCategoryQuery(""))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +89,7 @@ func (s *categoryService) UpdateCategory(mod_category Category) error {
 	}
 	// ToDo: Set Date and User for update
 	query := "UPDATE category SET category_name = '?', update_date='?', update_by='?'"
-	_, up_err := DB.Exec(query, mod_category.Name, "", "")
+	_, up_err := s.db.Exec(query, mod_category.Name, "", "")
 	if up_err != nil {
 		return up_err
 	}
@@ -99,7 +103,7 @@ func (s *categoryService) DeleteCategory(id string) error {
 
 	}
 	query := "DELETE FROM category WHERE categoryid = ?;"
-	_, del_err := DB.Exec(query, id)
+	_, del_err := s.db.Exec(query, id)
 	if del_err != nil {
 		return del_err
 	}

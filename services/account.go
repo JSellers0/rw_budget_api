@@ -1,5 +1,7 @@
 package services
 
+import "database/sql"
+
 type Account struct {
 	ID       string `json:"accountid" form:"accountid"`
 	Name     string `json:"account_name" form:"account_name" binding:"required"`
@@ -18,10 +20,12 @@ type AccountService interface {
 	DeleteAccount(string) error
 }
 
-type accountService struct{}
+type accountService struct {
+	db *sql.DB
+}
 
-func NewAccountService() AccountService {
-	return &accountService{}
+func NewAccountService(db *sql.DB) AccountService {
+	return &accountService{db: db}
 }
 
 func (s *accountService) CreateAccount(account Account) (id *int64, err error) {
@@ -29,7 +33,7 @@ func (s *accountService) CreateAccount(account Account) (id *int64, err error) {
 	query := "INSERT INTO account (account_name, account_type, rewards_features, payment_day, statement_day) "
 	query += "VALUES (?, ?, ?, ?, ?);"
 
-	res, err := DB.Exec(query,
+	res, err := s.db.Exec(query,
 		account.Name, account.Type, account.Features,
 		account.PmtDay, account.StmtDay,
 	)
@@ -46,7 +50,7 @@ func (s *accountService) CreateAccount(account Account) (id *int64, err error) {
 func (s *accountService) ReadAccountByID(id string) (*Account, error) {
 	query := buildGetAccountQuery("WHERE accountid = ?\n;")
 	var account Account
-	if err := DB.QueryRow(
+	if err := s.db.QueryRow(
 		query, id).Scan(
 		&account.ID,
 		&account.Name,
@@ -63,10 +67,11 @@ func (s *accountService) ReadAccountByID(id string) (*Account, error) {
 func (s *accountService) ReadAccountsByName(name string) (records []*Account, err error) {
 	query := buildGetAccountQuery("WHERE account_name = ?\n;")
 	accounts := []*Account{}
-	results, err := DB.Query(query, name)
+	results, err := s.db.Query(query, name)
 	if err != nil {
 		return nil, err
 	}
+	defer results.Close()
 	for results.Next() {
 		var account Account
 		err = results.Scan(
@@ -87,10 +92,11 @@ func (s *accountService) ReadAccountsByName(name string) (records []*Account, er
 
 func (s *accountService) ReadAllAccounts() (records []*Account, err error) {
 	accounts := []*Account{}
-	results, err := DB.Query(buildGetAccountQuery(";"))
+	results, err := s.db.Query(buildGetAccountQuery(";"))
 	if err != nil {
 		return nil, err
 	}
+	defer results.Close()
 	for results.Next() {
 		var account Account
 		err = results.Scan(
@@ -121,7 +127,7 @@ func (s *accountService) UpdateAccount(mod_account Account) error {
 	query += "payment_day=?, statement_day=?\n"
 	query += "WHERE accountid=?"
 
-	_, up_err := DB.Exec(query,
+	_, up_err := s.db.Exec(query,
 		mod_account.Name, mod_account.Type, mod_account.Features,
 		mod_account.PmtDay, mod_account.StmtDay, mod_account.ID,
 	)
@@ -138,7 +144,7 @@ func (s *accountService) DeleteAccount(accountid string) error {
 
 	}
 	query := "DELETE FROM account WHERE accountid = ?;"
-	_, del_err := DB.Exec(query, accountid)
+	_, del_err := s.db.Exec(query, accountid)
 	if del_err != nil {
 		return del_err
 	}
