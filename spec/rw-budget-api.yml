@@ -75,7 +75,7 @@ paths:
                 properties:
                   success:
                     type: boolean
-                  accounts:
+                  data:
                     type: array
                     items:
                       $ref: '#/components/schemas/Account'
