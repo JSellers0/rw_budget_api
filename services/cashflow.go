@@ -97,7 +97,11 @@ func (s *cashflowService) ReadCashflowChart(year string, month string, chart_lim
 
 func (s *cashflowService) ReadCashflowCardBalances(year string, month string) ([]*CardBalance, error) {
 	var records []*CardBalance
-	cb_query := "SELECT * FROM vw_cashflow_card_balances WHERE flow_year = ? AND flow_month = ?;"
+	cb_query := `
+	SELECT accountid, accountname, chg_bal, pmt_bal, cur_bal, pnd_bal
+	FROM vw_cashflow_card_balances WHERE flow_year = ? AND flow_month = ?
+	;`
+
 	res, err := s.db.Query(cb_query, year, month)
 	if err != nil {
 		return nil, err
@@ -105,7 +109,7 @@ func (s *cashflowService) ReadCashflowCardBalances(year string, month string) ([
 	for res.Next() {
 		var data CardBalance
 		if err := res.Scan(
-			&data.FlowYear, &data.FlowMonth, &data.AccountID, &data.AccountName,
+			&data.AccountID, &data.AccountName,
 			&data.Chg_bal, &data.Pmt_bal, &data.Cur_bal, &data.Pnd_bal,
 		); err != nil {
 			return nil, err
