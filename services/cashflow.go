@@ -3,8 +3,6 @@ package services
 import "database/sql"
 
 type SummaryData struct {
-	FlowYear      int     `json:"flow_year"`
-	FlowMonth     int     `json:"flow_month"`
 	CashflowGroup string  `json:"cashflow_group"`
 	MonthGroup    string  `json:"month_group"`
 	Amount        float64 `json:"amount"`
@@ -17,8 +15,6 @@ type ChartData struct {
 }
 
 type CardBalance struct {
-	FlowYear    int     `json:"flow_year"`
-	FlowMonth   int     `json:"flow_month"`
 	AccountID   int     `json:"accountid"`
 	AccountName string  `json:"account_name"`
 	Chg_bal     float64 `json:"chg_bal"`
@@ -43,7 +39,7 @@ func NewCashflowService(db *sql.DB) CashflowService {
 
 func (s *cashflowService) ReadCashflowSummary(year string, month string) ([]*SummaryData, error) {
 	var records []*SummaryData
-	base_query := "SELECT flow_year, flow_month, cashflow_group, month_group, amount\n"
+	base_query := "SELECT cashflow_group, month_group, amount\n"
 	base_query += "FROM vw_cashflow_summary_api\nWHERE flow_year = ?\n\t AND flow_month = ?\n;"
 
 	res, err := s.db.Query(base_query, year, month)
@@ -53,8 +49,7 @@ func (s *cashflowService) ReadCashflowSummary(year string, month string) ([]*Sum
 	for res.Next() {
 		var data SummaryData
 		if err := res.Scan(
-			&data.FlowYear, &data.FlowMonth, &data.CashflowGroup,
-			&data.MonthGroup, &data.Amount,
+			&data.CashflowGroup, &data.MonthGroup, &data.Amount,
 		); err != nil {
 			return nil, err
 		}
@@ -98,7 +93,7 @@ func (s *cashflowService) ReadCashflowChart(year string, month string, chart_lim
 func (s *cashflowService) ReadCashflowCardBalances(year string, month string) ([]*CardBalance, error) {
 	var records []*CardBalance
 	cb_query := `
-	SELECT accountid, accountname, chg_bal, pmt_bal, cur_bal, pnd_bal
+	SELECT accountid, account_name, chg_bal, pmt_bal, cur_bal, pnd_bal
 	FROM vw_cashflow_card_balances WHERE flow_year = ? AND flow_month = ?
 	;`
 
